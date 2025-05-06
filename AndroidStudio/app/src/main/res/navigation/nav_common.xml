@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/nav_common"
+    app:startDestination="@id/inicioFragment">
+
+    <fragment
+        android:id="@+id/inicioFragment"
+        android:name="com.example.hangout.fragments.common.InicioFragment"
+        android:label="Inicio" />
+
+    <fragment
+        android:id="@+id/inicioSesionFragment"
+        android:name="com.example.hangout.fragments.common.InicioSesionFragment"
+        android:label="Iniciar Sesión" />
+
+    <fragment
+        android:id="@+id/registrarseFragment"
+        android:name="com.example.hangout.fragments.common.RegistrarseFragment"
+        android:label="Registrarse" />
+
+    <!-- Navegación condicional -->
+    <action
+        android:id="@+id/action_inicioSesionFragment_to_nav_usuario"
+        app:destination="@id/nav_usuario" />
+
+    <action
+        android:id="@+id/action_inicioSesionFragment_to_nav_admin"
+        app:destination="@id/nav_admin" />
+</navigation>

@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/nav_admin"
+    app:startDestination="@id/inicioAdminFragment">
+
+    <fragment
+        android:id="@+id/inicioAdminFragment"
+        android:name="com.example.hangout.fragments.admin.InicioAdminFragment"
+        android:label="Inicio Admin" />
+
+    <fragment
+        android:id="@+id/crearEstablecimientoFragment"
+        android:name="com.example.hangout.fragments.admin.CrearEstablecimientoFragment"
+        android:label="Crear Establecimiento" />
+
+    <fragment
+        android:id="@+id/crearEventoFragment"
+        android:name="com.example.hangout.fragments.admin.CrearEventoFragment"
+        android:label="Crear Evento" />
+
+    <fragment
+        android:id="@+id/crearOfertaFragment"
+        android:name="com.example.hangout.fragments.admin.CrearOfertaFragment"
+        android:label="Crear Oferta" />
+
+    <fragment
+        android:id="@+id/datosAdministradorFragment"
+        android:name="com.example.hangout.fragments.admin.DatosAdministradorFragment"
+        android:label="Datos Administrador" />
+
+    <fragment
+        android:id="@+id/datosEstablecimientoFragment"
+        android:name="com.example.hangout.fragments.admin.DatosEstablecimientoFragment"
+        android:label="Datos Establecimiento" />
+
+    <fragment
+        android:id="@+id/datosEventoFragment"
+        android:name="com.example.hangout.fragments.admin.DatosEventoFragment"
+        android:label="Datos Evento" />
+
+    <fragment
+        android:id="@+id/datosOfertaFragment"
+        android:name="com.example.hangout.fragments.admin.DatosOfertaFragment"
+        android:label="Datos Oferta" />
+
+    <fragment
+        android:id="@+id/modificarAdministradorFragment"
+        android:name="com.example.hangout.fragments.admin.ModificarAdministradorFragment"
+        android:label="Modificar Administrador" />
+
+    <fragment
+        android:id="@+id/modificarEstablecimientoFragment"
+        android:name="com.example.hangout.fragments.admin.ModificarEstablecimientoFragment"
+        android:label="Modificar Establecimiento" />
+
+    <fragment
+        android:id="@+id/modificarEventoFragment"
+        android:name="com.example.hangout.fragments.admin.ModificarEventoFragment"
+        android:label="Modificar Evento" />
+
+    <fragment
+        android:id="@+id/modificarOfertaFragment"
+        android:name="com.example.hangout.fragments.admin.ModificarOfertaFragment"
+        android:label="Modificar Oferta" />
+</navigation>

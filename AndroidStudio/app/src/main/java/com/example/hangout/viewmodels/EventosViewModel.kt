@@ -1,0 +1,27 @@
+package com.example.hangout.viewmodels
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.hangout.models.Evento
+import com.example.hangout.network.RetrofitInstance
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
+
+class EventosViewModel : ViewModel() {
+    private val _eventos = MutableStateFlow<List<Evento>>(emptyList())
+    val eventos: StateFlow<List<Evento>> = _eventos
+
+    fun cargarEventos() {
+        viewModelScope.launch {
+            try {
+                val response = RetrofitInstance.api.getEventos()
+                if (response.isSuccessful) {
+                    _eventos.value = response.body() ?: emptyList()
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+}

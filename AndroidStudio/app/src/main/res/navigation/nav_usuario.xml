@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/nav_usuario"
+    app:startDestination="@id/inicioUsuarioFragment">
+
+    <fragment
+        android:id="@+id/inicioUsuarioFragment"
+        android:name="com.example.hangout.fragments.user.InicioUsuarioFragment"
+        android:label="Inicio Usuario" />
+
+    <fragment
+        android:id="@+id/crearActividadFragment"
+        android:name="com.example.hangout.fragments.user.CrearActividadFragment"
+        android:label="Crear Actividad" />
+
+    <fragment
+        android:id="@+id/crearReviewFragment"
+        android:name="com.example.hangout.fragments.user.CrearReviewFragment"
+        android:label="Crear Review" />
+
+    <fragment
+        android:id="@+id/datosActividadFragment"
+        android:name="com.example.hangout.fragments.user.DatosActividadFragment"
+        android:label="Datos Actividad" />
+
+    <fragment
+        android:id="@+id/datosEstablecimientoUsuarioFragment"
+        android:name="com.example.hangout.fragments.user.DatosEstablecimientoUsuarioFragment"
+        android:label="Establecimiento" />
+
+    <fragment
+        android:id="@+id/datosEventoUsuarioFragment"
+        android:name="com.example.hangout.fragments.user.DatosEventoUsuarioFragment"
+        android:label="Evento" />
+
+    <fragment
+        android:id="@+id/modificarActividadFragment"
+        android:name="com.example.hangout.fragments.user.ModificarActividadFragment"
+        android:label="Modificar Actividad" />
+
+    <fragment
+        android:id="@+id/modificarUsuarioFragment"
+        android:name="com.example.hangout.fragments.user.ModificarUsuarioFragment"
+        android:label="Modificar Usuario" />
+
+    <fragment
+        android:id="@+id/datosUsuarioFragment"
+        android:name="com.example.hangout.fragments.user.DatosUsuarioFragment"
+        android:label="Perfil" />
+
+    <fragment
+        android:id="@+id/datosOfertaUsuarioFragment"
+        android:name="com.example.hangout.fragments.user.DatosOfertaUsuarioFragment"
+        android:label="Oferta" />
+
+    <fragment
+        android:id="@+id/datosAmigosFragment"
+        android:name="com.example.hangout.fragments.user.DatosAmigosFragment"
+        android:label="Amigos" />
+
+    <fragment
+        android:id="@+id/seguirUsuarioFragment"
+        android:name="com.example.hangout.fragments.user.SeguirUsuarioFragment"
+        android:label="Seguir Usuario" />
+
+    <fragment
+        android:id="@+id/compartirActividadFragment"
+        android:name="com.example.hangout.fragments.user.CompartirActividadFragment"
+        android:label="Compartir Actividad" />
+</navigation>
