@@ -42,26 +42,9 @@ class Establecimiento:
     @staticmethod
     def consultar_establecimientos():
         try:
-            establecimientos_cursor = mongo.db.establecimientos.find()
-            establecimientos_completos = []
-
-            for establecimiento in establecimientos_cursor:
-                # Reemplazar IDs por documentos reales
-                establecimiento["ofertas"] = list(mongo.db.ofertas.find({
-                    "_id": {"$in": [ObjectId(id_) for id_ in establecimiento.get("ofertas", [])]}
-                }))
-
-                establecimiento["eventos"] = list(mongo.db.eventos.find({
-                    "_id": {"$in": [ObjectId(id_) for id_ in establecimiento.get("eventos", [])]}
-                }))
-
-                establecimiento["reviews"] = list(mongo.db.reviews.find({
-                    "_id": {"$in": [ObjectId(id_) for id_ in establecimiento.get("reviews", [])]}
-                }))
-
-                establecimientos_completos.append(establecimiento)
-
-            return json_util.dumps(establecimientos_completos)
+            establecimientos = mongo.db.establecimientos.find({}, {"_id": 1})
+            ids_establecimientos = [str(establecimiento["_id"]) for establecimiento in establecimientos]
+            return json_util.dumps(ids_establecimientos)
         except PyMongoError as e:
             raise RuntimeError(f"Error de base de datos al consultar los establecimientos: {e}")
 

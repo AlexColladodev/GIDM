@@ -6,9 +6,9 @@ data class Establecimiento(
     val nombre_establecimiento: String,
     val id_administrador: String,
     val ambiente: List<String>,
-    val ofertas: List<Oferta>,
-    val eventos: List<Evento>,
-    val reviews: List<Review>,
+    val ofertas: List<String>,
+    val eventos: List<String>,
+    val reviews: List<String>,
     val imagen_url: String
 )
 

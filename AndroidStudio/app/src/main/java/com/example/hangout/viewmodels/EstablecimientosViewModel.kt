@@ -16,9 +16,19 @@ class EstablecimientosViewModel : ViewModel() {
     fun cargarEstablecimientos() {
         viewModelScope.launch {
             try {
-                val response = RetrofitInstance.api.getEstablecimientos()
-                if (response.isSuccessful) {
-                    _establecimientos.value = response.body() ?: emptyList()
+                val responseIds = RetrofitInstance.api.getEstablecimientos()
+                if (responseIds.isSuccessful) {
+                    val ids = responseIds.body() ?: emptyList()
+                    val detalles = ids.mapNotNull { id ->
+                        try {
+                            val detalleResponse = RetrofitInstance.api.getEstablecimientoById(id)
+                            if (detalleResponse.isSuccessful) detalleResponse.body() else null
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                            null
+                        }
+                    }
+                    _establecimientos.value = detalles
                 }
             } catch (e: Exception) {
                 e.printStackTrace()

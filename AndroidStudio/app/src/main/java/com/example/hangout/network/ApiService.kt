@@ -25,7 +25,7 @@ interface ApiService {
 
     // --- Establecimientos ---
     @GET("establecimientos")
-    suspend fun getEstablecimientos(): Response<List<Establecimiento>>
+    suspend fun getEstablecimientos(): Response<List<String>>
 
     @POST("establecimientos")
     suspend fun createEstablecimiento(@Body establecimiento: Establecimiento): Response<Void>
