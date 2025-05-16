@@ -10,7 +10,10 @@ data class Establecimiento(
     val eventos: List<String>,
     val reviews: List<String>,
     val imagen_url: String
-)
+) {
+    val id: String
+        get() = _id?.`$oid` ?: ""
+}
 
 data class IdWrapper(
     val `$oid`: String

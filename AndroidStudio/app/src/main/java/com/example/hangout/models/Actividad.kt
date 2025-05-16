@@ -1,6 +1,7 @@
 package com.example.hangout.models
 
 data class Actividad(
+    val _id: IdWrapper?,
     val nombre_actividad: String,
     val descripcion_actividad: String,
     val ubicacion: String,
@@ -8,4 +9,6 @@ data class Actividad(
     val hora_actividad: String,
     val id_usuario_creador: String,
     val participantes: List<String>
-)
+){
+    val id: String get() = _id?.`$oid` ?: ""
+}

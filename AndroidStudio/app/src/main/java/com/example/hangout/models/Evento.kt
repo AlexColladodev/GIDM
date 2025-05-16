@@ -9,7 +9,9 @@ data class Evento(
     val hora_evento: String,
     val id_establecimiento: String,
     val imagen_url: String
-)
+){
+    val id: String get() = _id?.`$oid` ?: ""
+}
 
 data class FechaWrapper(
     val `$date`: String
