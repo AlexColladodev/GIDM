@@ -8,6 +8,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.hangout.ui.screens.InicioScreen
 import com.example.hangout.ui.screens.RegistroScreen
+import com.example.hangout.ui.screens.LoginScreen
 import com.example.hangout.ui.screens.usuario.InicioUsuarioScreen
 
 @Composable
@@ -15,10 +16,11 @@ fun HangOutApp() {
     val navController = rememberNavController()
 
     NavHost(navController = navController, startDestination = "inicio") {
-        composable("inicio") { RegistroScreen(navController) }
-        composable("login") { /* LoginScreen(navController) */ }
-        composable("registro") { /* RegistroScreen(navController) */ }
-        // Añadir más pantallas aquí
+        composable("inicio") { InicioScreen(navController) }
+        composable("registro") { RegistroScreen(navController) }
+        composable("login") {  LoginScreen(navController)  }
+        composable("inicio_usuario_generico") { InicioUsuarioScreen(navController) }
+
     }
 }
 

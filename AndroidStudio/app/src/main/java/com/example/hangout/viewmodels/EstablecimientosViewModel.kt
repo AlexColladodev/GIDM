@@ -1,5 +1,6 @@
 package com.example.hangout.viewmodels
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.hangout.models.Establecimiento
@@ -8,7 +9,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-class EstablecimientosViewModel : ViewModel() {
+class EstablecimientosViewModel(private val context: Context) : ViewModel() {
 
     private val _establecimientos = MutableStateFlow<List<Establecimiento>>(emptyList())
     val establecimientos: StateFlow<List<Establecimiento>> = _establecimientos
@@ -16,12 +17,13 @@ class EstablecimientosViewModel : ViewModel() {
     fun cargarEstablecimientos() {
         viewModelScope.launch {
             try {
-                val responseIds = RetrofitInstance.api.getEstablecimientos()
+                val api = RetrofitInstance.create(context)
+                val responseIds = api.getEstablecimientos()
                 if (responseIds.isSuccessful) {
                     val ids = responseIds.body() ?: emptyList()
                     val detalles = ids.mapNotNull { id ->
                         try {
-                            val detalleResponse = RetrofitInstance.api.getEstablecimientoById(id)
+                            val detalleResponse = api.getEstablecimientoById(id)
                             if (detalleResponse.isSuccessful) detalleResponse.body() else null
                         } catch (e: Exception) {
                             e.printStackTrace()

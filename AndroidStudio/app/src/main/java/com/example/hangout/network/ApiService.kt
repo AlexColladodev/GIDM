@@ -3,6 +3,8 @@ package com.example.hangout.network
 import com.example.hangout.models.*
 import retrofit2.Response
 import retrofit2.http.*
+import okhttp3.ResponseBody
+
 
 interface ApiService {
 
@@ -14,7 +16,7 @@ interface ApiService {
     suspend fun createUsuario(@Body usuario: UsuarioGenerico): Response<Void>
 
     @GET("usuario_generico/mi_perfil")
-    suspend fun getPerfil(): Response<UsuarioGenerico>
+    suspend fun getPerfil(): Response<PerfilResponse>
 
     // --- Administradores de Establecimiento ---
     @GET("administrador_establecimiento")
@@ -40,23 +42,27 @@ interface ApiService {
     suspend fun deleteEstablecimiento(@Path("id") id: String): Response<Void>
 
     @GET("establecimientos/filtro_personalizado")
-    suspend fun getEstablecimientosPersonalizados(): Response<List<Establecimiento>>
+    suspend fun getEstablecimientosPersonalizados(): Response<ResponseBody>
 
     @GET("establecimientos/filtrar")
     suspend fun filtrarEstablecimientosPorAmbiente(@Query("ambiente") ambiente: List<String>): Response<List<Establecimiento>>
 
     @GET("establecimientos/ordenados")
-    suspend fun getEstablecimientosOrdenados(): Response<List<Establecimiento>>
+    suspend fun getEstablecimientosOrdenados(): Response<ResponseBody>
 
     // --- Eventos ---
+
+    @GET("eventos/ordenados")
+    suspend fun getEventosOrdenados(): Response<Map<String, List<String>>>
+
+    @GET("eventos/{id}")
+    suspend fun getEventoById(@Path("id") id: String): Response<Evento>
+
     @GET("eventos")
     suspend fun getEventos(): Response<List<Evento>>
 
     @POST("eventos")
     suspend fun createEvento(@Body evento: Evento): Response<Void>
-
-    @GET("eventos/{id}")
-    suspend fun getEventoById(@Path("id") id: String): Response<Evento>
 
     @PUT("eventos/{id}")
     suspend fun updateEvento(@Path("id") id: String, @Body evento: Evento): Response<Void>
@@ -105,4 +111,7 @@ interface ApiService {
 
     @DELETE("reviews/{id}")
     suspend fun deleteReview(@Path("id") id: String): Response<Void>
+
+    @POST("login")
+    suspend fun login(@Body credentials: LoginRequest): Response<ResponseBody>
 }

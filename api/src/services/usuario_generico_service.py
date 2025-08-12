@@ -7,6 +7,7 @@ from config import DevelopmentConfig
 from models.establecimiento import Establecimiento
 from uploads_config import photos
 from marshmallow import ValidationError
+import json
 
 blueprint = Blueprint("UsuarioGenerico", "usuario_generico", url_prefix="/usuario_generico")
 
@@ -15,33 +16,48 @@ url_review = f"{DevelopmentConfig.BASE_URL}/reviews"
 
 @blueprint.route("", methods=["POST"])
 def crear_usuario_generico():
-    if 'imagen' in request.files and request.files['imagen'].filename != '':
-        filename = photos.save(request.files['imagen'])
-        imagen_url = f"/_uploads/photos/{filename}"
-        data = request.form.to_dict()
-        data['imagen_url'] = imagen_url
-    else:
-        data = request.form.to_dict()
-        data['imagen_url'] = f'/_uploads/photos/default.png'
-        data.pop('imagen')
-
-    data['preferencias'] = data['preferencias'].split(',')
-    schema = UsuarioGenericoSchema()
-    
     try:
+        # Detecta si el request es JSON o formulario
+        if request.content_type and "application/json" in request.content_type:
+            data = request.get_json()
+        else:
+            data = request.form.to_dict()
+
+        # Manejo de la imagen (solo con multipart/form-data)
+        if 'imagen' in request.files and request.files['imagen'].filename != '':
+            filename = photos.save(request.files['imagen'])
+            imagen_url = f"/_uploads/photos/{filename}"
+        else:
+            imagen_url = f"/_uploads/photos/default.png"
+
+        data['imagen_url'] = imagen_url
+
+        # Convertir 'preferencias' a lista si existe y es string
+        preferencias_str = data.get('preferencias')
+        if preferencias_str:
+            data['preferencias'] = preferencias_str.split(',') if isinstance(preferencias_str, str) else preferencias_str
+        else:
+            data['preferencias'] = []
+
+        print(data)
+
+        # Validar e insertar
+        schema = UsuarioGenericoSchema()
         datos_validados = schema.load(data)
         nuevo_usuario = UsuarioGenerico(datos_validados)
         respuesta = nuevo_usuario.insertar_usuario_generico()
         return respuesta, 200
-    except RuntimeError as e:
-        return jsonify({"error": str(e)}), 500
+
     except ValidationError as e:
         errors = e.messages
         first_error_key = next(iter(errors))
         error_message = errors[first_error_key][0]
         return jsonify({"error": error_message}), 400
+    except RuntimeError as e:
+        return jsonify({"error": str(e)}), 500
     except Exception as e:
         return jsonify({"error": f"{e}"}), 500
+
 
 @blueprint.route("", methods=["DELETE"])
 @jwt_required()
@@ -71,10 +87,23 @@ def consultar_usuarios():
 @blueprint.route("/mi_perfil", methods=["GET"])
 @jwt_required()
 def consultar_unico_usuario():
-    usuario = get_jwt_identity()
-    id = str(usuario.get("_id"))
+    id = get_jwt_identity()
     try:
         respuesta = UsuarioGenerico.consultar_usuario(id)
+        return Response(respuesta, mimetype="application/json"), 200
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 404
+    except RuntimeError as e:
+        return jsonify({"error": str(e)}), 500
+    except Exception as e:
+        return jsonify({"error": f"Error inesperado: {e}"}), 500
+    
+@blueprint.route("/actividades_participa", methods=["GET"])
+@jwt_required()
+def consultar_actividades_participa():
+    id = get_jwt_identity()
+    try:
+        respuesta = UsuarioGenerico.consultar_actividades_participa(id)
         return Response(respuesta, mimetype="application/json"), 200
     except ValueError as e:
         return jsonify({"error": str(e)}), 404
@@ -116,10 +145,9 @@ def actualizar_usuario():
 @jwt_required()
 def add_actividad():
     data = request.json
-    usuario = get_jwt_identity()
-    id_usuario_creador = str(usuario.get("_id"))
+    id_usuario_creador = get_jwt_identity()  # este es el string del _id
     data["id_usuario_creador"] = id_usuario_creador
-    
+
     try:
         respuesta_json = requests.post(url_actividad, json=data).json()
         id_actividad = respuesta_json.get("id")
@@ -128,9 +156,16 @@ def add_actividad():
     except RuntimeError as e:
         return jsonify({"error": str(e)}), 500
     except requests.exceptions.RequestException as e:
-        return jsonify({"error": "Error en la solicitud al servicio de actividades", "detalles": str(e)}), 400
+        return jsonify({
+            "error": "Error en la solicitud al servicio de actividades",
+            "detalles": str(e)
+        }), 400
     except Exception as e:
-        return jsonify({"error": "Error general al añadir actividad al usuario", "detalles": str(e)}), 500
+        return jsonify({
+            "error": "Error general al añadir actividad al usuario",
+            "detalles": str(e)
+        }), 500
+
 
 @blueprint.route("/seguir_usuario", methods=["POST"])
 @jwt_required()
@@ -204,8 +239,7 @@ def no_participa():
 @jwt_required()
 def crear_review():
     data = request.json
-    usuario = get_jwt_identity()
-    id_usuario = str(usuario.get("_id"))
+    id_usuario = get_jwt_identity()
 
     data["id_usuario"] = str(id_usuario)
 

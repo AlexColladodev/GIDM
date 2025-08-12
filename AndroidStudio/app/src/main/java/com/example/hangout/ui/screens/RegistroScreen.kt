@@ -1,5 +1,6 @@
 package com.example.hangout.ui.screens
 
+import android.app.DatePickerDialog
 import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -8,7 +9,6 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -22,9 +22,15 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
-import com.example.hangout.models.Ambiente
 import com.example.hangout.data.AmbientesProvider
+import com.example.hangout.models.Ambiente
+import com.example.hangout.models.UsuarioGenerico
+import com.example.hangout.models.AdministradorEstablecimiento
+import com.example.hangout.network.RetrofitInstance
+import com.example.hangout.ui.components.CircleBackground
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -41,6 +47,7 @@ fun RegistroScreen(navController: NavController) {
     var dni by remember { mutableStateOf("") }
     var selectedAmbientes by remember { mutableStateOf(setOf<Ambiente>()) }
     var imageUri by remember { mutableStateOf<Uri?>(null) }
+    var fechaNac by remember { mutableStateOf("") }
 
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
@@ -48,138 +55,214 @@ fun RegistroScreen(navController: NavController) {
 
     val scrollState = rememberScrollState()
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Registro") },
-                navigationIcon = {
-                    IconButton(onClick = { /* navController.popBackStack() */ }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Volver")
-                    }
-                }
-            )
-        }
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(scrollState)
-                .padding(padding)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            OutlinedTextField(value = nombre, onValueChange = { nombre = it }, label = { Text("Nombre") }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp))
-            OutlinedTextField(value = nombreUsuario, onValueChange = { nombreUsuario = it }, label = { Text("Usuario") }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp))
-            OutlinedTextField(value = contraseña, onValueChange = { contraseña = it }, label = { Text("Contraseña") }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp))
-            OutlinedTextField(value = correo, onValueChange = { correo = it }, label = { Text("Correo electrónico") }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp))
-            OutlinedTextField(value = telefono, onValueChange = { telefono = it }, label = { Text("Teléfono") }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp))
+    Box(modifier = Modifier.fillMaxSize()) {
+        CircleBackground()
 
-            Text("Tipo de cuenta:")
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                listOf("Usuario", "Administrador").forEach { tipo ->
-                    val selected = tipoCuenta == tipo
-                    OutlinedButton(
-                        onClick = { tipoCuenta = tipo },
-                        colors = ButtonDefaults.outlinedButtonColors(
-                            containerColor = if (selected) MaterialTheme.colorScheme.primary else Color.Transparent,
-                            contentColor = if (selected) Color.White else MaterialTheme.colorScheme.onSurface
-                        ),
-                        shape = RoundedCornerShape(20.dp)
-                    ) {
-                        Text(tipo)
+        Scaffold(
+            containerColor = Color.Transparent,
+            topBar = {
+                TopAppBar(
+                    title = { Text("Registro") },
+                    navigationIcon = {
+                        IconButton(onClick = { navController.popBackStack() }) {
+                            Icon(Icons.Default.ArrowBack, contentDescription = "Volver")
+                        }
                     }
-                }
-            }
-
-            if (tipoCuenta == "Administrador") {
-                OutlinedTextField(
-                    value = dni,
-                    onValueChange = { dni = it },
-                    label = { Text("DNI") },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp)
                 )
             }
+        ) { padding ->
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(scrollState)
+                    .padding(padding)
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                OutlinedTextField(value = nombre, onValueChange = { nombre = it }, label = { Text("Nombre") }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp))
+                OutlinedTextField(value = nombreUsuario, onValueChange = { nombreUsuario = it }, label = { Text("Usuario") }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp))
+                OutlinedTextField(value = contraseña, onValueChange = { contraseña = it }, label = { Text("Contraseña") }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp))
+                OutlinedTextField(value = correo, onValueChange = { correo = it }, label = { Text("Correo electrónico") }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp))
+                OutlinedTextField(value = telefono, onValueChange = { telefono = it }, label = { Text("Teléfono") }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp))
 
-            if (tipoCuenta == "Usuario") {
-                Text("Ambiente:", style = MaterialTheme.typography.titleMedium)
+                Button(
+                    onClick = {
+                        val calendario = Calendar.getInstance()
+                        val year = calendario.get(Calendar.YEAR)
+                        val month = calendario.get(Calendar.MONTH)
+                        val day = calendario.get(Calendar.DAY_OF_MONTH)
 
-                Spacer(modifier = Modifier.height(8.dp))
+                        DatePickerDialog(
+                            context,
+                            { _, y, m, d ->
+                                val date = Calendar.getInstance()
+                                date.set(y, m, d)
+                                val format = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                                fechaNac = format.format(date.time)
+                            },
+                            year, month, day
+                        ).show()
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text(if (fechaNac.isEmpty()) "Seleccionar fecha de nacimiento" else "Fecha: $fechaNac")
+                }
 
-                val ambientes = AmbientesProvider.listaAmbientes
-                val filas = ambientes.chunked(4)
-
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    filas.forEach { fila ->
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceEvenly
+                Text("Tipo de cuenta:")
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    listOf("Usuario", "Administrador").forEach { tipo ->
+                        val selected = tipoCuenta == tipo
+                        OutlinedButton(
+                            onClick = { tipoCuenta = tipo },
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                containerColor = if (selected) MaterialTheme.colorScheme.primary else Color.Transparent,
+                                contentColor = if (selected) Color.White else MaterialTheme.colorScheme.onSurface
+                            ),
+                            shape = RoundedCornerShape(20.dp)
                         ) {
-                            fila.forEach { ambiente ->
-                                val seleccionado = ambiente in selectedAmbientes
-                                Column(
-                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                    modifier = Modifier
-                                        .size(80.dp)
-                                        .clickable {
-                                            selectedAmbientes = if (seleccionado)
-                                                selectedAmbientes - ambiente
-                                            else
-                                                selectedAmbientes + ambiente
-                                        }
-                                        .padding(4.dp)
-                                ) {
-                                    Surface(
-                                        tonalElevation = if (seleccionado) 4.dp else 0.dp,
-                                        shape = RoundedCornerShape(16.dp),
-                                        color = if (seleccionado) MaterialTheme.colorScheme.primary.copy(alpha = 0.2f) else Color.Transparent
+                            Text(tipo)
+                        }
+                    }
+                }
+
+                if (tipoCuenta == "Administrador") {
+                    OutlinedTextField(
+                        value = dni,
+                        onValueChange = { dni = it },
+                        label = { Text("DNI") },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp)
+                    )
+                }
+
+                if (tipoCuenta == "Usuario") {
+                    Text("Ambiente:", style = MaterialTheme.typography.titleMedium)
+                    Spacer(modifier = Modifier.height(8.dp))
+                    val ambientes = AmbientesProvider.listaAmbientes
+                    val filas = ambientes.chunked(4)
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        filas.forEach { fila ->
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceEvenly
+                            ) {
+                                fila.forEach { ambiente ->
+                                    val seleccionado = ambiente in selectedAmbientes
+                                    Column(
+                                        horizontalAlignment = Alignment.CenterHorizontally,
+                                        modifier = Modifier
+                                            .size(80.dp)
+                                            .clickable {
+                                                selectedAmbientes = if (seleccionado)
+                                                    selectedAmbientes - ambiente
+                                                else
+                                                    selectedAmbientes + ambiente
+                                            }
+                                            .padding(4.dp)
                                     ) {
-                                        Image(
-                                            painter = rememberAsyncImagePainter(ambiente.imageRes),
-                                            contentDescription = ambiente.name,
-                                            modifier = Modifier
-                                                .size(48.dp)
-                                                .padding(8.dp)
+                                        Surface(
+                                            tonalElevation = if (seleccionado) 4.dp else 0.dp,
+                                            shape = RoundedCornerShape(16.dp),
+                                            color = if (seleccionado) MaterialTheme.colorScheme.primary.copy(alpha = 0.2f) else Color.Transparent
+                                        ) {
+                                            Image(
+                                                painter = rememberAsyncImagePainter(ambiente.imageRes),
+                                                contentDescription = ambiente.name,
+                                                modifier = Modifier
+                                                    .size(48.dp)
+                                                    .padding(8.dp)
+                                            )
+                                        }
+                                        Spacer(modifier = Modifier.height(4.dp))
+                                        Text(
+                                            text = ambiente.name,
+                                            style = MaterialTheme.typography.bodySmall
                                         )
                                     }
-                                    Spacer(modifier = Modifier.height(4.dp))
-                                    Text(
-                                        text = ambiente.name,
-                                        style = MaterialTheme.typography.bodySmall
-                                    )
                                 }
                             }
                         }
                     }
                 }
-            }
 
-            Button(onClick = { launcher.launch("image/*") }) {
-                Text("Seleccionar imagen de perfil")
-            }
+                Button(onClick = { launcher.launch("image/*") }) {
+                    Text("Seleccionar imagen de perfil")
+                }
 
-            imageUri?.let {
-                Image(
-                    painter = rememberAsyncImagePainter(it),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(100.dp)
-                        .padding(top = 8.dp)
-                )
-            }
+                imageUri?.let {
+                    Image(
+                        painter = rememberAsyncImagePainter(it),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(100.dp)
+                            .padding(top = 8.dp)
+                    )
+                }
 
-            Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
-            Button(
-                onClick = {
-                    scope.launch {
-                        Toast.makeText(context, "Registro pendiente de implementación", Toast.LENGTH_SHORT).show()
-                    }
-                },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp)
-            ) {
-                Text("Registrarse")
+                Button(
+                    onClick = {
+                        scope.launch {
+                            try {
+                                val api = RetrofitInstance.create(context)
+
+                                if (tipoCuenta == "Usuario") {
+                                    val usuario = UsuarioGenerico(
+                                        nombre = nombre,
+                                        nombre_usuario = nombreUsuario,
+                                        password = contraseña,
+                                        email = correo,
+                                        telefono = telefono,
+                                        fecha_nac = fechaNac,
+                                        preferencias = selectedAmbientes.map { it.name },
+                                        seguidos = emptyList(),
+                                        actividades_creadas = emptyList(),
+                                        reviews = emptyList(),
+                                        imagen_url = imageUri?.toString() ?: ""
+                                    )
+
+                                    val response = api.createUsuario(usuario)
+                                    if (response.isSuccessful) {
+                                        navController.navigate("login")
+                                    } else {
+                                        val error = response.errorBody()?.string()
+                                        Toast.makeText(context, "Error: $error", Toast.LENGTH_LONG).show()
+                                    }
+
+                                } else if (tipoCuenta == "Administrador") {
+                                    val admin = AdministradorEstablecimiento(
+                                        nombre = nombre,
+                                        nombre_usuario = nombreUsuario,
+                                        password = contraseña,
+                                        email = correo,
+                                        telefono = telefono,
+                                        fecha_nac = fechaNac,
+                                        dni = dni,
+                                        establecimientos = emptyList(),
+                                        imagen_url = imageUri?.toString() ?: ""
+                                    )
+
+                                    val response = api.createAdministrador(admin)
+                                    if (response.isSuccessful) {
+                                        navController.navigate("login")
+                                    } else {
+                                        val error = response.errorBody()?.string()
+                                        Toast.makeText(context, "Error: $error", Toast.LENGTH_LONG).show()
+                                    }
+                                }
+                            } catch (e: Exception) {
+                                e.printStackTrace()
+                                Toast.makeText(context, "Error inesperado: ${e.message}", Toast.LENGTH_LONG).show()
+                            }
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text("Registrarse")
+                }
             }
         }
     }

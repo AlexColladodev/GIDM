@@ -81,3 +81,4 @@ def usuario_participa(id):
         return jsonify({"error": str(e)}), 500
     except Exception as e:
         return jsonify({"error": f"Error inesperado: {e}"}), 500
+    

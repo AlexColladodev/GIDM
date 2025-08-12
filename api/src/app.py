@@ -1,3 +1,6 @@
+import werkzeug.utils
+import werkzeug
+werkzeug.secure_filename = werkzeug.utils.secure_filename
 from flask import Flask, request, jsonify
 from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required, JWTManager
 from werkzeug.security import check_password_hash
@@ -7,6 +10,8 @@ from db import init_mongo, mongo
 from uploads_config import configure_upload, photos 
 from services import usuario_generico_service, administrador_establecimientos_service, establecimiento_service, actividad_service, evento_service, oferta_service, review_service
 from flask_swagger_ui import get_swaggerui_blueprint
+from datetime import datetime
+from bson import ObjectId
 
 app = Flask(__name__)
 app.config["MONGO_URI"] = "mongodb://localhost:27017/HangOut"
@@ -55,10 +60,13 @@ def login():
     if usuario_generico is not None:
         password = usuario_generico["password"]
         if check_password_hash(password, password_comprobar):
+            identity = str(usuario_generico["_id"])
+            claims = preparar_para_jwt(usuario_generico)
+            token = create_access_token(identity=identity, additional_claims=claims)
             resultado = {
                 "acceso": True,
-                "token": create_access_token(identity=preparar_para_jwt(usuario_generico)),
-                "usuario_generico": usuario_generico,
+                "token": token,
+                "usuario_generico": claims,
                 "rol": "usuario_generico"
             }
         else:
@@ -66,25 +74,40 @@ def login():
     elif administrador_establecimiento is not None:
         password = administrador_establecimiento["password"]
         if check_password_hash(password, password_comprobar):
-            resultado = {"acceso": True, 
-                         "token": create_access_token(identity=preparar_para_jwt(administrador_establecimiento)), 
-                         "administrador_establecimiento": administrador_establecimiento, 
-                         "rol": "administrador_establecimiento"
-                         }
+            identity = str(administrador_establecimiento["_id"])
+            claims = preparar_para_jwt(administrador_establecimiento)
+            token = create_access_token(identity=identity, additional_claims=claims)
+            resultado = {
+                "acceso": True,
+                "token": token,
+                "administrador_establecimiento": claims,
+                "rol": "administrador_establecimiento"
+            }
         else:
             resultado = {"acceso": False}
     else:
         resultado = {"acceso": False}
     return resultado
 
-@app.route('/hello', methods=['GET'])
+@app.route('/nombre', methods=['GET'])
+@jwt_required()
 def obtener_nombre_usuario():
-    return jsonify({"Hola": "Si funciono :)"}), 200
+    nombre_usuario = get_jwt_identity()
+    nombre = nombre_usuario.get("nombre")
+    return jsonify({"nombre_usuario": nombre}), 200
 
 def preparar_para_jwt(objeto):
-    if "_id" in objeto:
-        objeto["_id"] = str(objeto["_id"])
-    return objeto
+    limpio = {}
+    for k, v in objeto.items():
+        if isinstance(v, ObjectId):
+            limpio[k] = str(v)
+        elif isinstance(v, datetime):
+            limpio[k] = v.strftime("%Y-%m-%d")  # o %Y-%m-%dT%H:%M:%S si prefieres ISO
+        elif isinstance(v, dict) and "$date" in v:
+            limpio[k] = v["$date"].split("T")[0]  # para fechas tipo {"$date": ...}
+        else:
+            limpio[k] = v
+    return limpio
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=5000)

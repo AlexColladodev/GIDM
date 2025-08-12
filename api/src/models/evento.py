@@ -67,6 +67,9 @@ class Evento:
     def consultar_evento(id):
         try:
             evento = mongo.db.eventos.find_one({"_id": ObjectId(id)})
+            establecimiento = mongo.db.establecimientos.find_one({"_id": ObjectId(evento["id_establecimiento"])})
+            evento["nombre_establecimiento"] = establecimiento["nombre_establecimiento"] if establecimiento else None
+
             if not evento:
                 raise ValueError("Evento no encontrado")
             return json_util.dumps(evento)

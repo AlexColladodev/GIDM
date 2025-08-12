@@ -71,5 +71,5 @@ class UsuarioGenericoSchema(Schema):
         error_messages={"required": "Fecha de nacimiento sin rellenar"}
     )
     imagen_url = fields.Str(
-        required=True
+        required=False
     )

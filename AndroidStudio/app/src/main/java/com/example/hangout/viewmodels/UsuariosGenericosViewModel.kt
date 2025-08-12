@@ -1,5 +1,6 @@
 package com.example.hangout.viewmodels
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.hangout.models.*
@@ -15,7 +16,7 @@ data class InicioUsuarioUiState(
     val actividades: List<Actividad> = emptyList()
 )
 
-class UsuariosGenericosViewModel : ViewModel() {
+class UsuariosGenericosViewModel(private val context: Context) : ViewModel() {
 
     private val _uiState = MutableStateFlow(InicioUsuarioUiState())
     val uiState: StateFlow<InicioUsuarioUiState> = _uiState
@@ -29,23 +30,25 @@ class UsuariosGenericosViewModel : ViewModel() {
             try {
                 _uiState.value = _uiState.value.copy(loading = true)
 
-                val idsResponse = RetrofitInstance.api.getEstablecimientos()
+                val api = RetrofitInstance.create(context)
+
+                val idsResponse = api.getEstablecimientos()
                 val ids = if (idsResponse.isSuccessful) idsResponse.body() ?: emptyList() else emptyList()
 
                 val preferidos = ids.mapNotNull { id ->
-                    val response = RetrofitInstance.api.getEstablecimientoById(id)
+                    val response = api.getEstablecimientoById(id)
                     if (response.isSuccessful) response.body() else null
                 }
 
                 val eventos = try {
-                    val res = RetrofitInstance.api.getEventos()
+                    val res = api.getEventos()
                     if (res.isSuccessful) res.body() ?: emptyList() else emptyList()
                 } catch (_: Exception) {
                     emptyList()
                 }
 
                 val actividades = try {
-                    val res = RetrofitInstance.api.getActividades()
+                    val res = api.getActividades()
                     if (res.isSuccessful) res.body() ?: emptyList() else emptyList()
                 } catch (_: Exception) {
                     emptyList()

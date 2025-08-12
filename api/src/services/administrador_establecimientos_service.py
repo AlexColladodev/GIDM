@@ -13,32 +13,42 @@ url = f"{DevelopmentConfig.BASE_URL}/establecimientos"
 
 @blueprint.route("", methods=["POST"])
 def crear_administrador_establecimiento():
-    if 'imagen' in request.files and request.files['imagen'].filename != '':
-        filename = photos.save(request.files['imagen'])
-        imagen_url = f"/_uploads/photos/{filename}"
-        data = request.form.to_dict()
-        data['imagen_url'] = imagen_url
-    else:
-        data = request.form.to_dict()
-        data['imagen_url'] = f'/_uploads/photos/default.png'
-        data.pop('imagen')
-
-    schema = AdministradorEstablecimientoSchema()
-
     try:
+        content_type = request.content_type
+        if content_type and "application/json" in content_type:
+            data = request.get_json()
+        else:
+            data = request.form.to_dict()
+
+        print(data)
+
+        # Manejo de la imagen (solo si es multipart/form-data)
+        if 'imagen' in request.files and request.files['imagen'].filename != '':
+            filename = photos.save(request.files['imagen'])
+            imagen_url = f"/_uploads/photos/{filename}"
+        else:
+            imagen_url = f"/_uploads/photos/default.png"
+
+        data['imagen_url'] = imagen_url
+
+        # Validación y creación
+        schema = AdministradorEstablecimientoSchema()
         datos_validados = schema.load(data)
         administrador_establecimiento = AdministradorEstablecimiento(datos_validados)
         resultado = administrador_establecimiento.insertar_administrador_establecimiento()
         return jsonify(resultado), 200
-    except ValueError as e:
-        return jsonify({"error": str(e)}), 400
+
     except ValidationError as e:
         errors = e.messages
         first_error_key = next(iter(errors))
         error_message = errors[first_error_key][0]
         return jsonify({"error": error_message}), 400
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
     except Exception as e:
         return jsonify({"error": f"{e}"}), 500
+
+
 
 @blueprint.route("", methods=["DELETE"])
 @jwt_required()
@@ -69,8 +79,7 @@ def consultar_administradores_establecimiento():
 @blueprint.route("/mi_perfil", methods=["GET"])
 @jwt_required()
 def consultar_administrador_establecimiento():
-    admin = get_jwt_identity()
-    id = str(admin.get("_id"))
+    id = get_jwt_identity()
 
     try:
         respuesta = AdministradorEstablecimiento.consultar_administrador_establecimiento(id)
@@ -101,9 +110,9 @@ def actualizar_administrador_establecimiento():
 @jwt_required()
 def crear_establecimiento():
     data = request.json
-    administrador = get_jwt_identity()
-    id_administrador = administrador.get("_id")
-    data["id_administrador"] = str(id_administrador)
+    id_administrador = get_jwt_identity()  # ya es un string
+    data["id_administrador"] = id_administrador
+    
 
     try:
         respuesta_json = requests.post(url, json=data).json()
