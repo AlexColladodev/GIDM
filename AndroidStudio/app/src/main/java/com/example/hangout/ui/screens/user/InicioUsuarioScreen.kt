@@ -3,6 +3,7 @@ package com.example.hangout.ui.screens.usuario
 import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -41,36 +42,32 @@ import kotlin.math.round
 fun InicioUsuarioScreen(navController: NavController) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-
     var mejores by remember { mutableStateOf<List<Triple<Establecimiento, Double, Int>>>(emptyList()) }
     var paraTi by remember { mutableStateOf<List<Triple<Establecimiento, Double, Int>>>(emptyList()) }
-
     var selectedChip by remember { mutableStateOf(0) }
-    val chips = listOf("Para ti", "Reciente", "Visitado", "Low cost")
+    val chips = listOf("Para ti", "Recientes", "Más visitados", "Low cost")
 
     LaunchedEffect(Unit) {
         scope.launch {
             try {
                 val api = RetrofitInstance.create(context)
                 val gson = Gson()
-
                 val mejoresResponse = api.getEstablecimientosOrdenados()
                 if (mejoresResponse.isSuccessful && mejoresResponse.body() != null) {
                     val raw = mejoresResponse.body()!!.string()
                     val arr = JSONArray(raw)
-                    mejores = (0 until arr.length()).map { i ->
-                        val sub = arr.getJSONArray(i)
+                    mejores = (0 until arr.length()).map {
+                        val sub = arr.getJSONArray(it)
                         val est = gson.fromJson(sub.getJSONObject(0).toString(), Establecimiento::class.java)
                         Triple(est, sub.getDouble(1), sub.getInt(2))
                     }
                 }
-
                 val prefsResponse = api.getEstablecimientosPersonalizados()
                 if (prefsResponse.isSuccessful && prefsResponse.body() != null) {
                     val raw = prefsResponse.body()!!.string()
                     val arr = JSONArray(raw)
-                    paraTi = (0 until arr.length()).map { i ->
-                        val sub = arr.getJSONArray(i)
+                    paraTi = (0 until arr.length()).map {
+                        val sub = arr.getJSONArray(it)
                         val est = gson.fromJson(sub.getJSONObject(0).toString(), Establecimiento::class.java)
                         Triple(est, sub.getDouble(1), sub.getInt(2))
                     }
@@ -83,7 +80,6 @@ fun InicioUsuarioScreen(navController: NavController) {
 
     Box(Modifier.fillMaxSize()) {
         CircleBackground()
-
         Scaffold(
             containerColor = Color.Transparent,
             topBar = {
@@ -104,7 +100,6 @@ fun InicioUsuarioScreen(navController: NavController) {
                     .padding(horizontal = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // Carrusel "Mejores establecimientos"
                 item {
                     LazyRow(
                         horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -114,13 +109,15 @@ fun InicioUsuarioScreen(navController: NavController) {
                             FeaturedEstablecimientoCard(
                                 establecimiento = item.first,
                                 rating = item.second,
-                                reviews = item.third
+                                reviews = item.third,
+                                onClick = {
+                                    val id = item.first.id
+                                    if (!id.isNullOrBlank()) navController.navigate("inicio_usuario_establecimiento/$id")
+                                }
                             )
                         }
                     }
                 }
-
-                // Chips con MISMO ancho
                 item {
                     Row(
                         modifier = Modifier
@@ -128,26 +125,28 @@ fun InicioUsuarioScreen(navController: NavController) {
                             .padding(top = 4.dp, bottom = 8.dp),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        chips.forEachIndexed { index, label ->
+                        listOf(0, 1, 2, 3).forEach { index ->
                             FilterChip(
                                 selected = selectedChip == index,
                                 onClick = { selectedChip = index },
-                                label = { Text(label) },
+                                label = { Text(listOf("Para ti", "Recientes", "Más visitados", "Low cost")[index]) },
                                 shape = RoundedCornerShape(24.dp),
                                 modifier = Modifier
-                                    .weight(1f)               // <- igual ancho
-                                    .height(36.dp)            // <- altura consistente
+                                    .weight(1f)
+                                    .height(36.dp)
                             )
                         }
                     }
                 }
-
-                // Lista "Para ti"
                 items(paraTi) { item ->
                     ForYouEstablecimientoCard(
                         establecimiento = item.first,
                         rating = item.second,
-                        reviews = item.third
+                        reviews = item.third,
+                        onClick = {
+                            val id = item.first.id
+                            if (!id.isNullOrBlank()) navController.navigate("inicio_usuario_establecimiento/$id")
+                        }
                     )
                 }
             }
@@ -159,28 +158,25 @@ fun InicioUsuarioScreen(navController: NavController) {
 private fun FeaturedEstablecimientoCard(
     establecimiento: Establecimiento,
     rating: Double,
-    reviews: Int
+    reviews: Int,
+    onClick: () -> Unit
 ) {
     val shape = RoundedCornerShape(16.dp)
     val ctx = LocalContext.current
     val imgUrl = buildImageUrl(establecimiento.imagen_url)
-
     Box(
         modifier = Modifier
             .width(260.dp)
             .height(150.dp)
             .clip(shape)
+            .clickable { onClick() }
     ) {
         AsyncImage(
-            model = ImageRequest.Builder(ctx)
-                .data(imgUrl)
-                .crossfade(true)
-                .build(),
+            model = ImageRequest.Builder(ctx).data(imgUrl).crossfade(true).build(),
             contentDescription = null,
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop
         )
-
         Box(
             modifier = Modifier
                 .matchParentSize()
@@ -192,7 +188,6 @@ private fun FeaturedEstablecimientoCard(
                     )
                 )
         )
-
         Row(
             modifier = Modifier
                 .align(Alignment.TopEnd)
@@ -203,7 +198,6 @@ private fun FeaturedEstablecimientoCard(
             Spacer(Modifier.width(4.dp))
             Text("4 min", color = Color.White, style = MaterialTheme.typography.labelMedium)
         }
-
         Column(
             modifier = Modifier
                 .align(Alignment.BottomStart)
@@ -221,32 +215,16 @@ private fun FeaturedEstablecimientoCard(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Filled.Star, contentDescription = null, tint = Color(0xFFFFC107), modifier = Modifier.size(16.dp))
                 Spacer(Modifier.width(4.dp))
-                Text(
-                    "${formatRating(rating)} (${formatReviews(reviews)})",
-                    color = Color.White,
-                    style = MaterialTheme.typography.labelMedium
-                )
+                Text("${formatRating(rating)} (${formatReviews(reviews)})", color = Color.White, style = MaterialTheme.typography.labelMedium)
             }
             Spacer(Modifier.height(2.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Filled.Place, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
                 Spacer(Modifier.width(4.dp))
-                Text(
-                    shortAddress(establecimiento),
-                    color = Color.White,
-                    style = MaterialTheme.typography.labelMedium,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
+                Text(shortAddress(establecimiento), color = Color.White, style = MaterialTheme.typography.labelMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
             Spacer(Modifier.height(2.dp))
-            Text(
-                establecimiento.ambiente.joinToString(", "),
-                color = Color.White,
-                style = MaterialTheme.typography.labelMedium,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
+            Text(establecimiento.ambiente.joinToString(", "), color = Color.White, style = MaterialTheme.typography.labelMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
     }
 }
@@ -255,26 +233,24 @@ private fun FeaturedEstablecimientoCard(
 private fun ForYouEstablecimientoCard(
     establecimiento: Establecimiento,
     rating: Double,
-    reviews: Int
+    reviews: Int,
+    onClick: () -> Unit
 ) {
     val shape = RoundedCornerShape(14.dp)
     val ctx = LocalContext.current
     val imgUrl = buildImageUrl(establecimiento.imagen_url)
-
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .height(86.dp),
+            .height(86.dp)
+            .clickable { onClick() },
         shape = shape,
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
         border = BorderStroke(1.dp, Color(0x22000000))
     ) {
         Row(Modifier.fillMaxSize()) {
             AsyncImage(
-                model = ImageRequest.Builder(ctx)
-                    .data(imgUrl)
-                    .crossfade(true)
-                    .build(),
+                model = ImageRequest.Builder(ctx).data(imgUrl).crossfade(true).build(),
                 contentDescription = null,
                 modifier = Modifier
                     .width(110.dp)
@@ -282,7 +258,6 @@ private fun ForYouEstablecimientoCard(
                     .clip(shape),
                 contentScale = ContentScale.Crop
             )
-
             Column(
                 modifier = Modifier
                     .padding(horizontal = 12.dp, vertical = 10.dp)
@@ -302,27 +277,16 @@ private fun ForYouEstablecimientoCard(
                     overflow = TextOverflow.Ellipsis
                 )
                 Spacer(Modifier.weight(1f))
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
                     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
                         Icon(Icons.Filled.Place, contentDescription = null, modifier = Modifier.size(14.dp))
                         Spacer(Modifier.width(4.dp))
-                        Text(
-                            shortAddress(establecimiento),
-                            style = MaterialTheme.typography.labelSmall,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
+                        Text(shortAddress(establecimiento), style = MaterialTheme.typography.labelSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Filled.Star, contentDescription = null, tint = Color(0xFFFFC107), modifier = Modifier.size(14.dp))
                         Spacer(Modifier.width(4.dp))
-                        Text(
-                            "${formatRating(rating)} (${formatReviews(reviews)})",
-                            style = MaterialTheme.typography.labelSmall
-                        )
+                        Text("${formatRating(rating)} (${formatReviews(reviews)})", style = MaterialTheme.typography.labelSmall)
                     }
                 }
             }
@@ -335,20 +299,8 @@ private fun buildImageUrl(path: String?): String {
     if (path.startsWith("http")) return emulatorize(path)
     return emulatorize(BASE_URL.trimEnd('/') + path)
 }
-
-private fun emulatorize(url: String): String =
-    url.replace("127.0.0.1", "10.0.2.2")
-
-private fun shortAddress(e: Establecimiento): String {
-
-    return "C. ${e.nombre_establecimiento.take(12)}, 1"
-}
-
-private fun formatRating(r: Double): String {
-    val x = (round(r * 10) / 10.0)
-    return if (x % 1.0 == 0.0) "${x.toInt()}" else "$x"
-}
-
+private fun emulatorize(url: String): String = url.replace("127.0.0.1", "10.0.2.2")
+private fun shortAddress(e: Establecimiento): String = "C. ${e.nombre_establecimiento.take(12)}, 1"
+private fun formatRating(r: Double): String { val x = (round(r * 10) / 10.0); return if (x % 1.0 == 0.0) "${x.toInt()}" else "$x" }
 private fun formatReviews(n: Int): String = if (n >= 200) "200+" else "$n"
-
 private const val BASE_URL = "http://127.0.0.1:5000"

@@ -50,6 +50,10 @@ interface ApiService {
     @GET("establecimientos/ordenados")
     suspend fun getEstablecimientosOrdenados(): Response<ResponseBody>
 
+    @GET("establecimientos/rating/{id}")
+    suspend fun getEstablecimientoRating(@Path("id") id: String): Response<EstablecimientoRating>
+
+
     // --- Eventos ---
 
     @GET("eventos/ordenados")
@@ -107,7 +111,7 @@ interface ApiService {
     suspend fun createReview(@Body review: Review): Response<Void>
 
     @GET("reviews/{id}")
-    suspend fun getReviewById(@Path("id") id: String): Response<Review>
+    suspend fun getReviewById(@Path("id") id: String): Response<ReviewResponse>
 
     @DELETE("reviews/{id}")
     suspend fun deleteReview(@Path("id") id: String): Response<Void>
