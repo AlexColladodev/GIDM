@@ -253,8 +253,11 @@ fun DatosEstablecimientoScreen(
                         precio = o.precio_oferta?.toString() ?: "",
                         imagen = buildImageUrl(o.imagen_url),
                         onClick = {
-                            val json = gson.toJson(o)
-                            navController.currentBackStackEntry?.savedStateHandle?.set("oferta_json", json)
+                            val jsonSel = gson.toJson(o)
+                            val jsonOtras = gson.toJson(ofertas.filter { it != o })
+
+                            navController.currentBackStackEntry?.savedStateHandle?.set("oferta_json", jsonSel)
+                            navController.currentBackStackEntry?.savedStateHandle?.set("otras_ofertas_json", jsonOtras)
                             navController.currentBackStackEntry?.savedStateHandle?.set("establecimiento_nombre_arg", est?.nombre_establecimiento ?: "Establecimiento")
                             navController.navigate("datos_oferta")
                         }
@@ -268,8 +271,10 @@ fun DatosEstablecimientoScreen(
                         precio = e.precio?.toString() ?: "",
                         imagen = buildImageUrl(e.imagen_url),
                         onClick = {
-                            val json = gson.toJson(e)
-                            navController.currentBackStackEntry?.savedStateHandle?.set("evento_json", json)
+                            val jsonSel = gson.toJson(e)
+                            val jsonOtros = gson.toJson(eventos.filter { it != e })
+                            navController.currentBackStackEntry?.savedStateHandle?.set("evento_json", jsonSel)
+                            navController.currentBackStackEntry?.savedStateHandle?.set("otros_eventos_json", jsonOtros)
                             navController.currentBackStackEntry?.savedStateHandle?.set("establecimiento_nombre_arg", est?.nombre_establecimiento ?: "Establecimiento")
                             navController.navigate("datos_evento")
                         }

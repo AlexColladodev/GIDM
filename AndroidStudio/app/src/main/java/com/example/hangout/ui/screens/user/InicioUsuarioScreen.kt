@@ -45,7 +45,7 @@ fun InicioUsuarioScreen(navController: NavController) {
     var mejores by remember { mutableStateOf<List<Triple<Establecimiento, Double, Int>>>(emptyList()) }
     var paraTi by remember { mutableStateOf<List<Triple<Establecimiento, Double, Int>>>(emptyList()) }
     var selectedChip by remember { mutableStateOf(0) }
-    val chips = listOf("Para ti", "Recientes", "Más visitados", "Low cost")
+    val chips = listOf("Para ti", "Favoritos", "Guardados", "Eventos")
 
     LaunchedEffect(Unit) {
         scope.launch {
@@ -129,7 +129,7 @@ fun InicioUsuarioScreen(navController: NavController) {
                             FilterChip(
                                 selected = selectedChip == index,
                                 onClick = { selectedChip = index },
-                                label = { Text(listOf("Para ti", "Recientes", "Más visitados", "Low cost")[index]) },
+                                label = { Text(listOf("Para ti", "Favoritos", "Guardados", "Eventos")[index]) },
                                 shape = RoundedCornerShape(24.dp),
                                 modifier = Modifier
                                     .weight(1f)
