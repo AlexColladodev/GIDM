@@ -81,8 +81,8 @@ class Evento:
         try:
             fecha_actual = datetime.now()
             eventos = mongo.db.eventos.find({"fecha_evento": {"$gte": fecha_actual}}).sort("fecha_evento", ASCENDING)
-            eventos_ids = [str(evento["_id"]) for evento in eventos]
-            return {"eventos_ordenados": eventos_ids}
+            #eventos_ids = [str(evento["_id"]) for evento in eventos]
+            return {"eventos_ordenados": eventos}
         except PyMongoError as e:
             raise RuntimeError(f"Error de base de datos al consultar y ordenar eventos: {e}")
 

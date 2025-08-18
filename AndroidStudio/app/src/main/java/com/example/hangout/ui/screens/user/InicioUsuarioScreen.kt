@@ -36,22 +36,26 @@ import com.google.gson.Gson
 import kotlinx.coroutines.launch
 import org.json.JSONArray
 import kotlin.math.round
+import androidx.compose.foundation.layout.size
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun InicioUsuarioScreen(navController: NavController) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+
     var mejores by remember { mutableStateOf<List<Triple<Establecimiento, Double, Int>>>(emptyList()) }
     var paraTi by remember { mutableStateOf<List<Triple<Establecimiento, Double, Int>>>(emptyList()) }
+
     var selectedChip by remember { mutableStateOf(0) }
-    val chips = listOf("Para ti", "Favoritos", "Guardados", "Eventos")
+    val chips = listOf("Para ti", "Favoritos", "Guardados") // sin "Eventos"
 
     LaunchedEffect(Unit) {
         scope.launch {
             try {
                 val api = RetrofitInstance.create(context)
                 val gson = Gson()
+
                 val mejoresResponse = api.getEstablecimientosOrdenados()
                 if (mejoresResponse.isSuccessful && mejoresResponse.body() != null) {
                     val raw = mejoresResponse.body()!!.string()
@@ -62,6 +66,7 @@ fun InicioUsuarioScreen(navController: NavController) {
                         Triple(est, sub.getDouble(1), sub.getInt(2))
                     }
                 }
+
                 val prefsResponse = api.getEstablecimientosPersonalizados()
                 if (prefsResponse.isSuccessful && prefsResponse.body() != null) {
                     val raw = prefsResponse.body()!!.string()
@@ -80,11 +85,12 @@ fun InicioUsuarioScreen(navController: NavController) {
 
     Box(Modifier.fillMaxSize()) {
         CircleBackground()
+
         Scaffold(
             containerColor = Color.Transparent,
             topBar = {
                 TopAppBar(
-                    title = { Text("Mejores Establecimientos") },
+                    title = { Text("Inicio") },
                     navigationIcon = {
                         IconButton(onClick = { navController.popBackStack() }) {
                             Icon(Icons.Filled.ArrowBack, contentDescription = null)
@@ -118,6 +124,7 @@ fun InicioUsuarioScreen(navController: NavController) {
                         }
                     }
                 }
+
                 item {
                     Row(
                         modifier = Modifier
@@ -125,11 +132,18 @@ fun InicioUsuarioScreen(navController: NavController) {
                             .padding(top = 4.dp, bottom = 8.dp),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        listOf(0, 1, 2, 3).forEach { index ->
+                        chips.forEachIndexed { index, label ->
                             FilterChip(
                                 selected = selectedChip == index,
                                 onClick = { selectedChip = index },
-                                label = { Text(listOf("Para ti", "Favoritos", "Guardados", "Eventos")[index]) },
+                                label = {
+                                    Box(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(label, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                    }
+                                },
                                 shape = RoundedCornerShape(24.dp),
                                 modifier = Modifier
                                     .weight(1f)
@@ -138,6 +152,7 @@ fun InicioUsuarioScreen(navController: NavController) {
                         }
                     }
                 }
+
                 items(paraTi) { item ->
                     ForYouEstablecimientoCard(
                         establecimiento = item.first,
@@ -164,6 +179,7 @@ private fun FeaturedEstablecimientoCard(
     val shape = RoundedCornerShape(16.dp)
     val ctx = LocalContext.current
     val imgUrl = buildImageUrl(establecimiento.imagen_url)
+
     Box(
         modifier = Modifier
             .width(260.dp)
@@ -239,6 +255,7 @@ private fun ForYouEstablecimientoCard(
     val shape = RoundedCornerShape(14.dp)
     val ctx = LocalContext.current
     val imgUrl = buildImageUrl(establecimiento.imagen_url)
+
     Card(
         modifier = Modifier
             .fillMaxWidth()

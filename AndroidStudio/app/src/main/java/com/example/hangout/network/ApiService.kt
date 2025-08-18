@@ -57,7 +57,7 @@ interface ApiService {
     // --- Eventos ---
 
     @GET("eventos/ordenados")
-    suspend fun getEventosOrdenados(): Response<Map<String, List<String>>>
+    suspend fun getEventosOrdenadosRaw(): Response<ResponseBody>
 
     @GET("eventos/{id}")
     suspend fun getEventoById(@Path("id") id: String): Response<Evento>

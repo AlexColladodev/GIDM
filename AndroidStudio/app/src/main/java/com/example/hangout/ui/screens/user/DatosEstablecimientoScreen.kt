@@ -2,6 +2,7 @@ package com.example.hangout.ui.screens.usuario
 
 import android.util.Log
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -44,7 +45,7 @@ import kotlin.math.round
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import com.google.gson.Gson
-import androidx.compose.runtime.remember
+import androidx.compose.ui.res.painterResource
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -205,18 +206,7 @@ fun DatosEstablecimientoScreen(
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     est?.ambiente?.forEach { tag ->
-                        AssistChip(
-                            onClick = {},
-                            label = { Text(tag.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }) },
-                            leadingIcon = {
-                                Box(
-                                    Modifier
-                                        .size(20.dp)
-                                        .clip(CircleShape)
-                                        .background(Color(0x11000000))
-                                )
-                            }
-                        )
+                        AmbienteChip(tag)
                     }
                 }
             }
@@ -226,7 +216,7 @@ fun DatosEstablecimientoScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Button(
+                    OutlinedButton(
                         onClick = { selectedTab = 0 },
                         modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(20.dp),
@@ -255,7 +245,6 @@ fun DatosEstablecimientoScreen(
                         onClick = {
                             val jsonSel = gson.toJson(o)
                             val jsonOtras = gson.toJson(ofertas.filter { it != o })
-
                             navController.currentBackStackEntry?.savedStateHandle?.set("oferta_json", jsonSel)
                             navController.currentBackStackEntry?.savedStateHandle?.set("otras_ofertas_json", jsonOtras)
                             navController.currentBackStackEntry?.savedStateHandle?.set("establecimiento_nombre_arg", est?.nombre_establecimiento ?: "Establecimiento")
@@ -316,6 +305,42 @@ fun DatosEstablecimientoScreen(
             }
         }
     }
+}
+
+@Composable
+private fun AmbienteChip(tag: String) {
+    val ctx = LocalContext.current
+    val drawableName = tag
+        .lowercase()
+        .trim()
+        .replace("[^a-z0-9]+".toRegex(), "_")
+        .replace("^_+|_+$".toRegex(), "")
+    val resId = remember(tag) { ctx.resources.getIdentifier(drawableName, "drawable", ctx.packageName) }
+
+    AssistChip(
+        onClick = {},
+        label = {
+            Text(tag.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() })
+        },
+        leadingIcon = {
+            if (resId != 0) {
+                Image(
+                    painter = painterResource(id = resId),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(20.dp)
+                        .clip(CircleShape)
+                )
+            } else {
+                Box(
+                    Modifier
+                        .size(20.dp)
+                        .clip(CircleShape)
+                        .background(Color(0x11000000))
+                )
+            }
+        }
+    )
 }
 
 @Composable
