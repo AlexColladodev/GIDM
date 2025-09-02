@@ -32,7 +32,6 @@ import java.util.Locale
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DatosOfertaScreen(navController: NavController) {
-    // 🔒 snapshot estable: no se reevalúa durante el pop
     val stableHandle = remember { navController.previousBackStackEntry?.savedStateHandle }
     val ofertaJson = remember { stableHandle?.get<String>("oferta_json") }
     val otrasJson  = remember { stableHandle?.get<String>("otras_ofertas_json") }

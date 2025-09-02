@@ -109,17 +109,38 @@ def actualizar_administrador_establecimiento():
 @blueprint.route("/nuevo_establecimiento", methods=["POST"])
 @jwt_required()
 def crear_establecimiento():
-    data = request.json
-    id_administrador = get_jwt_identity()  # ya es un string
-    data["id_administrador"] = id_administrador
-    
+    id_administrador = get_jwt_identity()
 
     try:
-        respuesta_json = requests.post(url, json=data).json()
-        return jsonify(respuesta_json), 200
-    except requests.exceptions.RequestException as e:
-        return jsonify({"error": "Error en la solicitud de creación de establecimiento", "detalles": str(e)}), 400
-    except RuntimeError as e:
-        return jsonify({"error": str(e)}), 500
+        content_type = request.content_type or ""
+
+        if "multipart/form-data" in content_type or "form-data" in content_type:
+            form = request.form.to_dict(flat=True)
+            ambiente_list = request.form.getlist("ambiente")
+            if ambiente_list:
+                form["ambiente"] = ",".join(ambiente_list)
+            form["id_administrador"] = id_administrador
+
+            files = {}
+            if "imagen" in request.files and request.files["imagen"].filename:
+                f = request.files["imagen"]
+                files["imagen"] = (f.filename, f.stream, f.mimetype or "application/octet-stream")
+
+            resp = requests.post(url, data=form, files=files) 
+        else:
+            data = request.get_json(silent=True) or {}
+            data["id_administrador"] = id_administrador
+            resp = requests.post(url, json=data)
+
+        resp.raise_for_status()
+        return jsonify(resp.json()), resp.status_code
+
+    except requests.HTTPError as e:
+        try:
+            err_json = e.response.json()
+        except Exception:
+            err_json = {"message": e.response.text if e.response is not None else str(e)}
+        return jsonify({"error": "Error en la creación de establecimiento", "backend": err_json}), e.response.status_code if e.response else 502
     except Exception as e:
         return jsonify({"error": "Error general en crear establecimiento", "detalles": str(e)}), 500
+

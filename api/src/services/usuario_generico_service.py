@@ -98,6 +98,20 @@ def consultar_unico_usuario():
     except Exception as e:
         return jsonify({"error": f"Error inesperado: {e}"}), 500
     
+@blueprint.route("/datos_perfil", methods=["GET"])
+@jwt_required()
+def datos_usuario():
+    id = get_jwt_identity()
+    try:
+        respuesta = UsuarioGenerico.consultar_usuario_2(id)
+        return Response(respuesta, mimetype="application/json"), 200
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 404
+    except RuntimeError as e:
+        return jsonify({"error": str(e)}), 500
+    except Exception as e:
+        return jsonify({"error": f"Error inesperado: {e}"}), 500
+    
 @blueprint.route("/actividades_participa", methods=["GET"])
 @jwt_required()
 def consultar_actividades_participa():
@@ -127,12 +141,13 @@ def consultar_usuario(id):
 @blueprint.route("", methods=["PUT"])
 @jwt_required()
 def actualizar_usuario():
+    print("Entrada")
     data = request.json
     usuario = get_jwt_identity()
-    id = str(usuario.get("_id"))
+    print(usuario)
 
     try:
-        respuesta = UsuarioGenerico.actualizar_usuario(id, data)
+        respuesta = UsuarioGenerico.actualizar_usuario(usuario, data)
         return respuesta, 200
     except ValueError as e:
         return jsonify({"error": str(e)}), 404
@@ -145,7 +160,7 @@ def actualizar_usuario():
 @jwt_required()
 def add_actividad():
     data = request.json
-    id_usuario_creador = get_jwt_identity()  # este es el string del _id
+    id_usuario_creador = get_jwt_identity()
     data["id_usuario_creador"] = id_usuario_creador
 
     try:

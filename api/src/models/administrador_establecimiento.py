@@ -79,6 +79,7 @@ class AdministradorEstablecimiento:
                             usuario = mongo.db.usuarios_genericos.find_one({"_id": ObjectId(review["id_usuario"])})
                             if usuario:
                                 review["nombre_usuario"] = usuario.get("nombre_usuario")
+                                review["imagen_url"] = usuario.get("imagen_url")
                             review["nombre_establecimiento"] = establecimiento.get("nombre_establecimiento")
                             reviews_detalles.append(review)
                     establecimiento_detalle = {

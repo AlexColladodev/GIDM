@@ -2,6 +2,8 @@ from flask import Blueprint, request, Response, jsonify
 from models.actividad import Actividad
 from schemas.actividad_schema import ActividadSchema
 from marshmallow import ValidationError
+from flask_jwt_extended import jwt_required, get_jwt_identity
+
 
 blueprint = Blueprint("Actividad", "actividades", url_prefix="/actividades")
 
@@ -82,3 +84,14 @@ def usuario_participa(id):
     except Exception as e:
         return jsonify({"error": f"Error inesperado: {e}"}), 500
     
+@blueprint.route("/mis_actividades", methods=["GET"])
+@jwt_required()
+def mis_actividades():
+    try:
+        user_id = get_jwt_identity()
+        respuesta = Actividad.actividades_de_usuario(user_id)
+        return Response(respuesta, mimetype='application/json'), 200
+    except RuntimeError as e:
+        return jsonify({"error": str(e)}), 500
+    except Exception as e:
+        return jsonify({"error": f"Error inesperado: {e}"}), 500

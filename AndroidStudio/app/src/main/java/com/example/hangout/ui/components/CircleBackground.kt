@@ -26,7 +26,7 @@ fun CircleBackground() {
 
         radii.forEachIndexed { i, radius ->
             drawCircle(
-                color = colors[i].copy(alpha = 0.15f), // más transparente
+                color = colors[i].copy(alpha = 0.15f),
                 radius = radius.toFloat(),
                 center = Offset(centerX, centerY),
                 style = Stroke(width = 6f)

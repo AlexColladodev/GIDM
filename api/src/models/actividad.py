@@ -126,3 +126,34 @@ class Actividad:
             return resultado
         except PyMongoError as e:
             raise RuntimeError(f"Error de base de datos: {e}")
+
+    def actividades_de_usuario(user_id):
+        try:
+            actividades = list(
+                mongo.db.actividades.find(
+                    {
+                        "$or": [
+                            {"participantes": str(user_id)},
+                            {"id_usuario_creador": str(user_id)}
+                        ]
+                    }
+                ).sort("fecha_actividad", 1)
+            )
+            for actividad in actividades:
+                participantes_ids = actividad.get("participantes", [])
+                perfil_participantes = []
+                for pid in participantes_ids:
+                    participante = mongo.db.usuarios_genericos.find_one(
+                        {"_id": ObjectId(pid)},
+                        {"_id": 1, "nombre_usuario": 1, "imagen_url": 1}
+                    )
+                    if participante:
+                        perfil_participantes.append({
+                            "id": str(participante.get("_id")),
+                            "nombre_usuario": participante.get("nombre_usuario", "Usuario"),
+                            "imagen_url": participante.get("imagen_url", "/_uploads/photos/default_user.png")
+                        })
+                actividad["perfil_participantes"] = perfil_participantes
+            return json_util.dumps(actividades)
+        except PyMongoError as e:
+            raise RuntimeError(f"Error de base de datos: {e}")

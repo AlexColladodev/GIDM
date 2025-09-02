@@ -117,6 +117,84 @@ class UsuarioGenerico:
             return json_util.dumps(resultado)
         except PyMongoError as e:
             raise RuntimeError(f"Error en la base de datos al consultar al usuario: {e}")
+        
+    @staticmethod
+    def consultar_usuario_2(id):
+        try:
+            usuario = mongo.db.usuarios_genericos.find_one(
+                {"_id": ObjectId(id)},
+                {
+                    "nombre": 1,
+                    "nombre_usuario": 1,
+                    "email": 1,
+                    "telefono": 1,
+                    "fecha_nac": 1,
+                    "imagen_url": 1,
+                    "preferencias": 1,
+                    "actividades_creadas": 1,
+                    "reviews": 1
+                }
+            )
+            if not usuario:
+                raise ValueError("Usuario no encontrado")
+
+            actividades_info = []
+            for actividad_id in usuario.get("actividades_creadas", []):
+                actividad = mongo.db.actividades.find_one({"_id": ObjectId(actividad_id)})
+                if actividad:
+                    perfiles_participantes = []
+                    for participante_id in actividad.get("participantes", []):
+                        participante = mongo.db.usuarios_genericos.find_one(
+                            {"_id": ObjectId(participante_id)},
+                            {"nombre_usuario": 1, "imagen_url": 1}
+                        )
+                        if participante:
+                            perfiles_participantes.append({
+                                "nombre_usuario": participante.get("nombre_usuario"),
+                                "imagen_url": participante.get("imagen_url")
+                            })
+                    actividad["perfil_participantes"] = perfiles_participantes
+                    actividades_info.append(actividad)
+
+            reviews_info = []
+            for review_id in usuario.get("reviews", []):
+                review = mongo.db.reviews.find_one({"_id": ObjectId(review_id)})
+                if review:
+                    establecimiento_review = mongo.db.establecimientos.find_one(
+                        {"_id": ObjectId(review["id_establecimiento"])},
+                        {"nombre_establecimiento": 1}
+                    )
+                    reviews_info.append({
+                        "_id": review.get("_id"),
+                        "calificacion": review.get("calificacion"),
+                        "mensaje": review.get("mensaje"),
+                        "id_usuario": review.get("id_usuario"),
+                        "id_establecimiento": review.get("id_establecimiento"),
+                        "fecha_creacion": review.get("fecha_creacion"),
+                        "nombre_usuario": usuario.get("nombre_usuario"),
+                        "nombre_establecimiento": establecimiento_review.get("nombre_establecimiento") if establecimiento_review else "Establecimiento no encontrado"
+                    })
+
+            resultado = {
+                "usuario": {
+                    "_id": usuario.get("_id"),
+                    "nombre": usuario.get("nombre"),
+                    "nombre_usuario": usuario.get("nombre_usuario"),
+                    "email": usuario.get("email"),
+                    "telefono": usuario.get("telefono"),
+                    "fecha_nac": usuario.get("fecha_nac"),
+                    "imagen_url": usuario.get("imagen_url"),
+                    "preferencias": usuario.get("preferencias", [])
+                },
+                "actividades": actividades_info,
+                "reviews": reviews_info
+            }
+
+            return json_util.dumps(resultado)
+
+        except PyMongoError as e:
+            raise RuntimeError(f"Error en la base de datos al consultar al usuario: {e}")
+
 
     @staticmethod
     def actualizar_usuario(id, data):

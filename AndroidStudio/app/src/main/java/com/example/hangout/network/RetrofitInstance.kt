@@ -34,7 +34,7 @@ object RetrofitInstance {
             .build()
 
         val retrofit = Retrofit.Builder()
-            .baseUrl("http://10.0.2.2:5000/") // para emulador Android Studio
+            .baseUrl("http://10.0.2.2:5000/")
             .addConverterFactory(GsonConverterFactory.create())
             .client(client)
             .build()

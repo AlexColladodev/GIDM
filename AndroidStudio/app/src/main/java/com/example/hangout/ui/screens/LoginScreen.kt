@@ -33,10 +33,10 @@ fun LoginScreen(navController: NavController) {
     var password by remember { mutableStateOf("") }
 
     Box(modifier = Modifier.fillMaxSize()) {
-        CircleBackground() // 👈 fondo detrás
+        CircleBackground()
 
         Scaffold(
-            containerColor = Color.Transparent, // 👈 permite ver el fondo
+            containerColor = Color.Transparent,
             topBar = {
                 TopAppBar(
                     title = { Text("Iniciar Sesión") },
@@ -119,7 +119,6 @@ fun LoginScreen(navController: NavController) {
                                     "administrador_establecimiento" -> navController.navigate("inicio_admin_establecimiento")
                                     else -> Toast.makeText(context, "Rol desconocido", Toast.LENGTH_SHORT).show()
                                 }
-
                             } catch (e: Exception) {
                                 e.printStackTrace()
                                 Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_LONG).show()

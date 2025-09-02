@@ -16,7 +16,7 @@ import androidx.compose.foundation.layout.size
 sealed class BottomNavItem(val title: String, val route: String, val iconRes: Int) {
     object Home : BottomNavItem("Inicio", "inicio_usuario_generico", R.drawable.hangout_icon)
     object Calendar : BottomNavItem("Calendario", "eventos_actividades", R.drawable.calendario_nav)
-    object Profile : BottomNavItem("Perfil", "mi_perfil", R.drawable.usuario_nav)
+    object Profile : BottomNavItem("Perfil", "datos_perfil", R.drawable.usuario_nav)
 }
 
 @Composable

@@ -4,11 +4,10 @@ import com.example.hangout.models.*
 import retrofit2.Response
 import retrofit2.http.*
 import okhttp3.ResponseBody
-
+import okhttp3.RequestBody
+import okhttp3.MultipartBody
 
 interface ApiService {
-
-    // --- Usuarios Genéricos ---
     @GET("usuario_generico")
     suspend fun getUsuarios(): Response<List<UsuarioGenerico>>
 
@@ -18,19 +17,43 @@ interface ApiService {
     @GET("usuario_generico/mi_perfil")
     suspend fun getPerfil(): Response<PerfilResponse>
 
-    // --- Administradores de Establecimiento ---
+    @GET("usuario_generico/datos_perfil")
+    suspend fun getDatosUsuarioRaw(): retrofit2.Response<okhttp3.ResponseBody>
+
+    @PUT("usuario_generico")
+    suspend fun actualizarPerfil(
+        @Header("Authorization") auth: String?,
+        @Header("Cookie") cookie: String?,
+        @Header("X-CSRF-TOKEN") csrf: String?,
+        @Body body: com.example.hangout.ui.screens.usuario.UpdateUsuarioRequest
+    ): retrofit2.Response<okhttp3.ResponseBody>
+
     @GET("administrador_establecimiento")
     suspend fun getAdministradores(): Response<List<AdministradorEstablecimiento>>
 
     @POST("administrador_establecimiento")
     suspend fun createAdministrador(@Body administrador: AdministradorEstablecimiento): Response<Void>
 
-    // --- Establecimientos ---
+    @GET("administrador_establecimiento/mi_perfil")
+    suspend fun getMiPerfilAdmin(): Response<ResponseBody>
+
+    @Multipart
+    @POST("administrador_establecimiento/nuevo_establecimiento")
+    suspend fun crearNuevoEstablecimientoMultipart(
+        @Part("nombre_establecimiento") nombre: RequestBody,
+        @Part("cif") cif: RequestBody,
+        @Part("ambiente") ambiente: RequestBody,
+        @Part imagen: MultipartBody.Part?
+    ): Response<ResponseBody>
+
     @GET("establecimientos")
     suspend fun getEstablecimientos(): Response<List<String>>
 
     @POST("establecimientos")
     suspend fun createEstablecimiento(@Body establecimiento: Establecimiento): Response<Void>
+
+    @GET("establecimientos/{id}")
+    suspend fun getEstablecimientoRaw(@Path("id") id: String): Response<ResponseBody>
 
     @GET("establecimientos/{id}")
     suspend fun getEstablecimientoById(@Path("id") id: String): Response<Establecimiento>
@@ -53,8 +76,27 @@ interface ApiService {
     @GET("establecimientos/rating/{id}")
     suspend fun getEstablecimientoRating(@Path("id") id: String): Response<EstablecimientoRating>
 
+    @Multipart
+    @POST("establecimientos/nueva_oferta")
+    suspend fun crearNuevaOfertaMultipart(
+        @Part("nombre_oferta") nombre: RequestBody,
+        @Part("descripcion_oferta") descripcion: RequestBody,
+        @Part("precio_oferta") precio: RequestBody,
+        @Part("id_establecimiento") idEstablecimiento: RequestBody,
+        @Part imagen: MultipartBody.Part?
+    ): Response<ResponseBody>
 
-    // --- Eventos ---
+    @Multipart
+    @POST("establecimientos/nuevo_evento")
+    suspend fun crearNuevoEventoMultipart(
+        @Part("nombre_evento") nombre: RequestBody,
+        @Part("descripcion_evento") descripcion: RequestBody,
+        @Part("precio") precio: RequestBody,
+        @Part("hora_evento") hora: RequestBody,
+        @Part("fecha_evento") fecha: RequestBody,
+        @Part("id_establecimiento") idEstablecimiento: RequestBody,
+        @Part imagen: MultipartBody.Part?
+    ): Response<ResponseBody>
 
     @GET("eventos/ordenados")
     suspend fun getEventosOrdenadosRaw(): Response<ResponseBody>
@@ -74,7 +116,6 @@ interface ApiService {
     @DELETE("eventos/{id}")
     suspend fun deleteEvento(@Path("id") id: String): Response<Void>
 
-    // --- Ofertas ---
     @GET("ofertas")
     suspend fun getOfertas(): Response<List<Oferta>>
 
@@ -90,7 +131,6 @@ interface ApiService {
     @DELETE("ofertas/{id}")
     suspend fun deleteOferta(@Path("id") id: String): Response<Void>
 
-    // --- Actividades ---
     @GET("actividades")
     suspend fun getActividades(): Response<List<Actividad>>
 
@@ -103,7 +143,14 @@ interface ApiService {
     @DELETE("actividades/{id}")
     suspend fun deleteActividad(@Path("id") id: String): Response<Void>
 
-    // --- Reviews ---
+    @GET("actividades/mis_actividades")
+    suspend fun getMisActividadesRaw(): Response<ResponseBody>
+
+    @POST("usuario_generico/nueva_actividad")
+    suspend fun crearNuevaActividadGateway(
+        @Body actividad: com.example.hangout.ui.screens.usuario.NuevaActividadRequest
+    ): retrofit2.Response<okhttp3.ResponseBody>
+
     @GET("reviews")
     suspend fun getReviews(): Response<List<Review>>
 
@@ -116,6 +163,21 @@ interface ApiService {
     @DELETE("reviews/{id}")
     suspend fun deleteReview(@Path("id") id: String): Response<Void>
 
+    @POST("usuario_generico/review")
+    suspend fun createReviewGateway(@Body review: Review): Response<ResponseBody>
+
     @POST("login")
     suspend fun login(@Body credentials: LoginRequest): Response<ResponseBody>
+
+    @PUT("ofertas/{id}")
+    suspend fun updateOfertaPartial(
+        @Path("id") id: String,
+        @Body body: Map<String, @JvmSuppressWildcards Any?>
+    ): retrofit2.Response<Void>
+
+    @PUT("eventos/{id}")
+    suspend fun updateEventoPartial(
+        @Path("id") id: String,
+        @Body body: Map<String, @JvmSuppressWildcards Any?>
+    ): retrofit2.Response<Void>
 }

@@ -48,7 +48,7 @@ fun InicioUsuarioScreen(navController: NavController) {
     var paraTi by remember { mutableStateOf<List<Triple<Establecimiento, Double, Int>>>(emptyList()) }
 
     var selectedChip by remember { mutableStateOf(0) }
-    val chips = listOf("Para ti", "Favoritos", "Guardados") // sin "Eventos"
+    val chips = listOf("Para ti", "Favoritos", "Guardados") //Añadirlo a la API D:
 
     LaunchedEffect(Unit) {
         scope.launch {

@@ -16,6 +16,7 @@ import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -68,6 +69,56 @@ fun DatosEstablecimientoScreen(
 
     LaunchedEffect(establecimientoId) {
         scope.launch {
+            try {
+                val api = RetrofitInstance.create(context)
+
+                val rEst = api.getEstablecimientoById(establecimientoId)
+                if (rEst.isSuccessful) {
+                    est = rEst.body()
+                }
+
+                val rRat = api.getEstablecimientoRating(establecimientoId)
+                if (rRat.isSuccessful) {
+                    val rr: EstablecimientoRating? = rRat.body()
+                    rating = rr?.media ?: 0.0
+                    reviewsCount = rr?.n_reviews ?: 0
+                }
+
+                val evs = mutableListOf<Evento>()
+                est?.eventos?.forEach { id ->
+                    val r = api.getEventoById(id)
+                    if (r.isSuccessful) r.body()?.let { evs.add(it) }
+                }
+                eventos = evs
+
+                val ofs = mutableListOf<Oferta>()
+                est?.ofertas?.forEach { id ->
+                    val r = api.getOfertaById(id)
+                    if (r.isSuccessful) r.body()?.let { ofs.add(it) }
+                }
+                ofertas = ofs
+
+                val revs = mutableListOf<ReviewResponse>()
+                est?.reviews?.forEach { id ->
+                    val r = api.getReviewById(id)
+                    if (r.isSuccessful) r.body()?.let { revs.add(it) }
+                }
+                reviews = revs
+            } catch (e: Exception) {
+                Log.e("API", "Error: ${e.message}", e)
+            }
+        }
+    }
+
+    val savedStateHandle = navController.currentBackStackEntry?.savedStateHandle
+    val reviewCreadaFlow = savedStateHandle?.getStateFlow("review_creada", false)
+    val reviewCreada by reviewCreadaFlow?.collectAsState(initial = false) ?: remember { mutableStateOf(false) }
+
+    LaunchedEffect(reviewCreada) {
+        if (reviewCreada) {
+
+            savedStateHandle?.set("review_creada", false)
+
             try {
                 val api = RetrofitInstance.create(context)
 
@@ -277,18 +328,21 @@ fun DatosEstablecimientoScreen(
                 Text("Calificar y opinar:")
                 Spacer(Modifier.height(6.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    repeat(5) {
+                    (1..5).forEach { i ->
                         Icon(
-                            Icons.Filled.Star,
+                            imageVector = Icons.Outlined.StarBorder,
                             contentDescription = null,
-                            tint = Color(0x22000000)
+                            tint = Color(0xFFFFC107),
+                            modifier = Modifier
+                                .size(28.dp)
+                                .clickable { navController.navigate("crearReview/$establecimientoId/$i") }
                         )
                     }
                 }
                 Spacer(Modifier.height(10.dp))
             }
 
-            items(reviews.take(1)) { r ->
+            items(reviews) { r ->
                 ReviewCard(
                     usuario = r.nombre_usuario ?: "Usuario",
                     calificacion = r.review?.calificacion ?: 0f,

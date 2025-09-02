@@ -64,6 +64,7 @@ def consultar_evento(id):
 @blueprint.route("/<id>", methods=["PUT"])
 def actualizar_evento(id):
     data = request.json
+    print(data)
     schema = EventoSchema()
 
     try:

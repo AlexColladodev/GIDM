@@ -64,6 +64,7 @@ def consultar_oferta(id):
 @blueprint.route("/<id>", methods=["PUT"])
 def actualizar_oferta(id):
     data = request.json
+    print(data)
     schema = OfertaSchema()
     
     try:
