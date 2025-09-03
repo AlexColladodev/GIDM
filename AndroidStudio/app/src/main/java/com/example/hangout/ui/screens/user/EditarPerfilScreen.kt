@@ -288,7 +288,7 @@ fun EditarPerfilScreen(navController: NavController) {
                                             put("preferencias", JSONArray(prefsNormalized))
                                         }.toString()
 
-                                        val BASE_URL = "http://10.0.2.2:5000/"
+                                        val BASE_URL = "http://127.0.0.1:5000/"
                                         val url = BASE_URL + "usuario_generico"
 
                                         val mediaType = "application/json; charset=utf-8".toMediaType()

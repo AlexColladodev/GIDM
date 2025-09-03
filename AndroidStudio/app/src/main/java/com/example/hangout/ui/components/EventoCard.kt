@@ -25,7 +25,7 @@ fun EventoCard(
     evento: Evento,
     onClick: (String) -> Unit
 ) {
-    val imageUrl = "http://10.0.2.2:5000${evento.imagen_url}"
+    val imageUrl = "http://127.0.0.1:5000${evento.imagen_url}"
     val rawDate = evento.fecha_evento.date
     val fechaFormateada = try {
         val parser = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault())

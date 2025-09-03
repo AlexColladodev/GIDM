@@ -310,12 +310,18 @@ private fun ForYouEstablecimientoCard(
         }
     }
 }
-
+/*
 private fun buildImageUrl(path: String?): String {
     if (path.isNullOrBlank()) return emulatorize("$BASE_URL/_uploads/photos/default_establecimiento.png")
     if (path.startsWith("http")) return emulatorize(path)
     return emulatorize(BASE_URL.trimEnd('/') + path)
+}*/
+private fun buildImageUrl(path: String?): String {
+    if (path.isNullOrBlank()) return "http://127.0.0.1:5000/_uploads/photos/default_establecimiento.png"
+    if (path.startsWith("http")) return path
+    return "http://127.0.0.1:5000${if (path.startsWith("/")) path else "/$path"}"
 }
+
 private fun emulatorize(url: String): String = url.replace("127.0.0.1", "10.0.2.2")
 private fun shortAddress(e: Establecimiento): String = "C. ${e.nombre_establecimiento.take(12)}, 1"
 private fun formatRating(r: Double): String { val x = (round(r * 10) / 10.0); return if (x % 1.0 == 0.0) "${x.toInt()}" else "$x" }

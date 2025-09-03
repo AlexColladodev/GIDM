@@ -176,9 +176,17 @@ fun CrearOfertaScreen(
     }
 }
 
+private fun buildImageUrl(path: String?): String {
+    if (path.isNullOrBlank()) return "http://127.0.0.1:5000/_uploads/photos/default.png"
+    if (path.startsWith("http")) return path
+    return "http://127.0.0.1:5000${if (path.startsWith("/")) path else "/$path"}"
+}
+
+/*
 private fun buildImageUrl(path: String): String {
     if (path.startsWith("http")) return emulatorize(path)
     return emulatorize("http://127.0.0.1:5000${if (path.startsWith("/")) path else "/$path"}")
 }
+*/
 
 private fun emulatorize(url: String): String = url.replace("127.0.0.1", "10.0.2.2")
