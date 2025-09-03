@@ -46,7 +46,7 @@ fun HangOutApp() {
     val navController = rememberNavController()
     val backStackEntry = navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry.value?.destination?.route
-    val routesHideExact = setOf("inicio", "registro", "login", "inicio_admin_establecimiento", "crear_establecimiento", "datos_oferta_admin", "crear_evento", "crear_oferta", "datos_evento_admin", "editar_evento", "editar_oferta", "editar_establecimiento")
+    val routesHideExact = setOf("inicio", "registro", "login", "inicio_admin_establecimiento", "crear_establecimiento", "datos_oferta_admin", "crear_evento", "crear_oferta", "datos_evento_admin", "editar_evento/{id}", "editar_oferta/{id}", "editar_establecimiento/{id}", "datos_oferta_admin/{id}", "datos_evento_admin/{id}")
     val routesHidePrefix = setOf("admin_establecimiento_detalle")
     val hideBottomBar = (currentRoute in routesHideExact) || routesHidePrefix.any { currentRoute?.startsWith(it) == true }
 

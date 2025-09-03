@@ -54,12 +54,7 @@ class UsuariosGenericosViewModel(private val context: Context) : ViewModel() {
                     emptyList()
                 }
 
-                _uiState.value = InicioUsuarioUiState(
-                    loading = false,
-                    preferidos = preferidos,
-                    eventos = eventos,
-                    actividades = actividades
-                )
+
 
             } catch (e: Exception) {
                 e.printStackTrace()
